@@ -17,6 +17,46 @@ type Voice struct {
 	UseCases  []string     `json:"use_cases"`
 }
 
+// UnmarshalJSON accepts both the legacy string and V3's localized voice_name.
+func (v *Voice) UnmarshalJSON(data []byte) error {
+	type fields struct {
+		VoiceID  string       `json:"voice_id"`
+		Models   []VoiceModel `json:"models"`
+		Gender   string       `json:"gender"`
+		Age      string       `json:"age"`
+		UseCases []string     `json:"use_cases"`
+	}
+	var raw struct {
+		VoiceName json.RawMessage `json:"voice_name"`
+		*fields
+	}
+	raw.fields = &fields{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	name := ""
+	if err := json.Unmarshal(raw.VoiceName, &name); err != nil {
+		var localized map[string]string
+		if err := json.Unmarshal(raw.VoiceName, &localized); err != nil {
+			return err
+		}
+		name = localized["eng"]
+		if name == "" {
+			name = localized["kor"]
+		}
+		for _, value := range localized {
+			if name == "" {
+				name = value
+			}
+		}
+	}
+
+	v.VoiceID, v.VoiceName, v.Models = raw.VoiceID, name, raw.Models
+	v.Gender, v.Age, v.UseCases = raw.Gender, raw.Age, raw.UseCases
+	return nil
+}
+
 type VoiceModel struct {
 	Version  string   `json:"version"`
 	Emotions []string `json:"emotions"`
@@ -55,7 +95,7 @@ func (c *Client) ListVoices(p ListVoicesParams) ([]Voice, error) {
 		q.Set("use_cases", p.UseCase)
 	}
 
-	path := "/v2/voices"
+	path := "/v3/voices"
 	if len(q) > 0 {
 		path += "?" + q.Encode()
 	}
@@ -74,7 +114,7 @@ func (c *Client) ListVoices(p ListVoicesParams) ([]Voice, error) {
 }
 
 func (c *Client) GetVoice(voiceID string) (*Voice, error) {
-	data, err := c.get("/v2/voices/" + url.PathEscape(voiceID))
+	data, err := c.get("/v3/voices/" + url.PathEscape(voiceID))
 	if err != nil {
 		return nil, err
 	}
