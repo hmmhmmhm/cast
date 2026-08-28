@@ -13,7 +13,7 @@ func TestListVoices_ReturnsVoices(t *testing.T) {
 	}
 
 	c, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v2/voices" {
+		if r.URL.Path != "/v3/voices" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
 		json.NewEncoder(w).Encode(want)
@@ -61,7 +61,7 @@ func TestGetVoice_ReturnsVoice(t *testing.T) {
 	want := Voice{VoiceID: "v1", VoiceName: "Alice", Gender: "female"}
 
 	c, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v2/voices/v1" {
+		if r.URL.Path != "/v3/voices/v1" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
 		json.NewEncoder(w).Encode(want)
@@ -73,6 +73,16 @@ func TestGetVoice_ReturnsVoice(t *testing.T) {
 	}
 	if voice.VoiceID != "v1" || voice.VoiceName != "Alice" {
 		t.Errorf("unexpected voice: %+v", voice)
+	}
+}
+
+func TestVoice_UnmarshalLocalizedV3Name(t *testing.T) {
+	var voice Voice
+	if err := json.Unmarshal([]byte(`{"voice_id":"v1","voice_name":{"eng":"Alice","kor":"앨리스"}}`), &voice); err != nil {
+		t.Fatal(err)
+	}
+	if voice.VoiceName != "Alice" {
+		t.Errorf("voice name: want Alice, got %q", voice.VoiceName)
 	}
 }
 

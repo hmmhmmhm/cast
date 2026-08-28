@@ -15,7 +15,7 @@ func TestCloneVoice_SendsMultipartRequest(t *testing.T) {
 	audioPath := writeTempAudio(t, "sample.wav", testWAVBytes())
 
 	c, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1/voices/clone" {
+		if r.URL.Path != "/v1/custom-voices/instant-clone" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
 		if r.Method != http.MethodPost {
@@ -266,8 +266,8 @@ func TestDeleteClonedVoice(t *testing.T) {
 	if gotMethod != http.MethodDelete {
 		t.Errorf("method: want DELETE, got %s", gotMethod)
 	}
-	if gotPath != "/v1/voices/uc_clone_123" {
-		t.Errorf("path: want /v1/voices/uc_clone_123, got %s", gotPath)
+	if gotPath != "/v1/custom-voices/uc_clone_123" {
+		t.Errorf("path: want /v1/custom-voices/uc_clone_123, got %s", gotPath)
 	}
 
 	if err := c.DeleteClonedVoice("tc_builtin"); err == nil {

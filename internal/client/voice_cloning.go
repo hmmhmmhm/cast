@@ -91,7 +91,7 @@ func (c *Client) CloneVoice(req CloneVoiceRequest) (*ClonedVoice, error) {
 		return nil, err
 	}
 
-	httpReq, err := http.NewRequest("POST", c.baseURL+"/v1/voices/clone", body)
+	httpReq, err := http.NewRequest("POST", c.baseURL+"/v1/custom-voices/instant-clone", body)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (c *Client) DeleteClonedVoice(voiceID string) error {
 	if !strings.HasPrefix(voiceID, "uc_") {
 		return fmt.Errorf("only cloned voice IDs that start with 'uc_' can be deleted")
 	}
-	_, err := c.delete("/v1/voices/" + url.PathEscape(voiceID))
+	_, err := c.delete("/v1/custom-voices/" + url.PathEscape(voiceID))
 	return err
 }
 
